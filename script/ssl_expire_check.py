@@ -11,6 +11,7 @@ from cryptography import x509
 import socket
 import ssl
 import sys
+import datetime
 
 hostname = sys.argv[1]
 
@@ -20,10 +21,11 @@ context = ssl.create_default_context()
 # override context so that it can get expired cert
 context.check_hostname = False
 context.verify_mode = ssl.CERT_NONE
-print(hostname)
+
 with socket.create_connection((hostname, 443)) as sock:
     with context.wrap_socket(sock, server_hostname=hostname) as ssock:
         data = ssock.getpeercert(True)
         pem_data = ssl.DER_cert_to_PEM_cert(data)
         cert_data = x509.load_pem_x509_certificate(str.encode(pem_data))
-        print("Expiry date:", cert_data.not_valid_after)
+        delta = cert_data.not_valid_after - datetime.datetime.utcnow()
+        print(delta.days)
