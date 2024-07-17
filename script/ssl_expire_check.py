@@ -47,7 +47,7 @@ if __name__ == "__main__":
         print(json.dumps(zabbix_discovery))
     elif args.cmd == 'status':
         hosts = args.hosts.split(',')
-        data = []
+        data = {}
         for host in hosts:
-            data.append({host: get_expire_days(host)})
+            data[host] = get_expire_days(host)
         print(json.dumps(data))
