@@ -13,8 +13,7 @@ import ssl
 import sys
 import datetime
 import json
-
-hostnames = sys.argv[1]
+import argparse
 
 # create default context
 context = ssl.create_default_context()
@@ -22,6 +21,8 @@ context = ssl.create_default_context()
 # override context so that it can get expired cert
 context.check_hostname = False
 context.verify_mode = ssl.CERT_NONE
+ZABBIX_DISCOVERY = '{#SSL_EXPIRE_HOST}'
+
 
 def get_expire_days(hostname):
     with socket.create_connection((hostname, 443)) as sock:
@@ -32,9 +33,21 @@ def get_expire_days(hostname):
             delta = cert_data.not_valid_after - datetime.datetime.utcnow()
             return delta.days
 
+
 if __name__ == "__main__":
-    hosts = hostnames.split(',')
-    data = []
-    for host in hosts:
-        data.append({host: get_expire_days(host)})
-    print(json.dumps(data))
+    parser = argparse.ArgumentParser(description='Supervisor monitoring')
+    parser.add_argument('cmd', type=str)
+    parser.add_argument('hosts', type=str)
+    args = parser.parse_args()
+
+    if args.cmd == 'discovery':
+        zabbix_discovery = []
+        for host in args.hosts.split(','):
+            zabbix_discovery.append({ZABBIX_DISCOVERY: host})
+        print(json.dumps(zabbix_discovery))
+    elif args.cmd == 'status':
+        hosts = args.hosts.split(',')
+        data = []
+        for host in hosts:
+            data.append({host: get_expire_days(host)})
+        print(json.dumps(data))
