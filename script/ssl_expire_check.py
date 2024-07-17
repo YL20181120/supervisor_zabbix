@@ -12,8 +12,9 @@ import socket
 import ssl
 import sys
 import datetime
+import json
 
-hostname = sys.argv[1]
+hostnames = sys.argv[1]
 
 # create default context
 context = ssl.create_default_context()
@@ -22,10 +23,18 @@ context = ssl.create_default_context()
 context.check_hostname = False
 context.verify_mode = ssl.CERT_NONE
 
-with socket.create_connection((hostname, 443)) as sock:
-    with context.wrap_socket(sock, server_hostname=hostname) as ssock:
-        data = ssock.getpeercert(True)
-        pem_data = ssl.DER_cert_to_PEM_cert(data)
-        cert_data = x509.load_pem_x509_certificate(str.encode(pem_data))
-        delta = cert_data.not_valid_after - datetime.datetime.utcnow()
-        print(delta.days)
+def get_expire_days(hostname):
+    with socket.create_connection((hostname, 443)) as sock:
+        with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+            data = ssock.getpeercert(True)
+            pem_data = ssl.DER_cert_to_PEM_cert(data)
+            cert_data = x509.load_pem_x509_certificate(str.encode(pem_data))
+            delta = cert_data.not_valid_after - datetime.datetime.utcnow()
+            return delta.days
+
+if __name__ == "__main__":
+    hosts = hostnames.split(',')
+    data = []
+    for host in hosts:
+        data.append({host: get_expire_days(host)})
+    print(json.dumps(data))
