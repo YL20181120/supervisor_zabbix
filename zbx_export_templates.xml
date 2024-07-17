@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<zabbix_export>
+    <version>6.0</version>
+    <date>2024-07-17T08:41:04Z</date>
+    <groups>
+        <group>
+            <uuid>9caacfa972e64d18bff26224723b063b</uuid>
+            <name>saas</name>
+        </group>
+        <group>
+            <uuid>6f6799aa69e844b4b3918f779f2abf08</uuid>
+            <name>Zabbix servers</name>
+        </group>
+    </groups>
+    <templates>
+        <template>
+            <uuid>06f9fd6817f041fbaf8ecd13709e9115</uuid>
+            <template>SSL Expire Check</template>
+            <name>SSL Expire Check</name>
+            <groups>
+                <group>
+                    <name>saas</name>
+                </group>
+                <group>
+                    <name>Zabbix servers</name>
+                </group>
+            </groups>
+            <items>
+                <item>
+                    <uuid>7c25543ec5904f1d8ef02152cb260139</uuid>
+                    <name>SSL Expire Days</name>
+                    <key>ssl_expire_check[{$SSL_CHECK_HOST}]</key>
+                    <history>1h</history>
+                    <trends>0</trends>
+                    <value_type>TEXT</value_type>
+                </item>
+            </items>
+            <discovery_rules>
+                <discovery_rule>
+                    <uuid>1e89f03273194674a6e679ec0e22e85e</uuid>
+                    <name>ssl_expire_check</name>
+                    <key>ssl_expire_discovery[{$SSL_CHECK_HOST}]</key>
+                    <delay>15m</delay>
+                    <item_prototypes>
+                        <item_prototype>
+                            <uuid>f95923eb189747e3a5e6ac99341ec404</uuid>
+                            <name>Remaining {#SSL_EXPIRE_HOST} Days</name>
+                            <type>DEPENDENT</type>
+                            <key>remaining_days_[{#SSL_EXPIRE_HOST}]</key>
+                            <delay>0</delay>
+                            <history>1d</history>
+                            <trends>0</trends>
+                            <preprocessing>
+                                <step>
+                                    <type>JSONPATH</type>
+                                    <parameters>
+                                        <parameter>$.[&quot;{#SSL_EXPIRE_HOST}&quot;]</parameter>
+                                    </parameters>
+                                </step>
+                            </preprocessing>
+                            <master_item>
+                                <key>ssl_expire_check[{$SSL_CHECK_HOST}]</key>
+                            </master_item>
+                            <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>4b608d707bb04a2abe68a8b620bf209d</uuid>
+                                    <expression>last(/SSL Expire Check/remaining_days_[{#SSL_EXPIRE_HOST}])&lt;=3</expression>
+                                    <name>Host {#SSL_EXPIRE_HOST} SSL key expired in 3 days</name>
+                                </trigger_prototype>
+                            </trigger_prototypes>
+                        </item_prototype>
+                    </item_prototypes>
+                    <lld_macro_paths>
+                        <lld_macro_path>
+                            <lld_macro>{#SSL_EXPIRE_HOST}</lld_macro>
+                            <path>$.[&quot;{#SSL_EXPIRE_HOST}&quot;]</path>
+                        </lld_macro_path>
+                    </lld_macro_paths>
+                    <preprocessing>
+                        <step>
+                            <type>DISCARD_UNCHANGED_HEARTBEAT</type>
+                            <parameters>
+                                <parameter>1d</parameter>
+                            </parameters>
+                        </step>
+                    </preprocessing>
+                </discovery_rule>
+            </discovery_rules>
+            <macros>
+                <macro>
+                    <macro>{$SSL_CHECK_HOST}</macro>
+                    <value>km.cocoplus.me</value>
+                    <description>要检测的域名, "," 分隔多个域名, 可自动发现分组</description>
+                </macro>
+            </macros>
+        </template>
+    </templates>
+</zabbix_export>
