@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <zabbix_export>
     <version>6.0</version>
-    <date>2024-07-17T08:41:04Z</date>
+    <date>2024-07-17T09:14:38Z</date>
     <groups>
         <group>
             <uuid>9caacfa972e64d18bff26224723b063b</uuid>
@@ -30,9 +30,16 @@
                     <uuid>7c25543ec5904f1d8ef02152cb260139</uuid>
                     <name>SSL Expire Days</name>
                     <key>ssl_expire_check[{$SSL_CHECK_HOST}]</key>
-                    <history>1h</history>
+                    <delay>1h</delay>
+                    <history>1d</history>
                     <trends>0</trends>
                     <value_type>TEXT</value_type>
+                    <tags>
+                        <tag>
+                            <tag>ssl_expire</tag>
+                            <value>raw</value>
+                        </tag>
+                    </tags>
                 </item>
             </items>
             <discovery_rules>
@@ -61,11 +68,28 @@
                             <master_item>
                                 <key>ssl_expire_check[{$SSL_CHECK_HOST}]</key>
                             </master_item>
+                            <tags>
+                                <tag>
+                                    <tag>ssl_expire</tag>
+                                    <value>raw</value>
+                                </tag>
+                                <tag>
+                                    <tag>ssl_expire_host</tag>
+                                    <value>{#SSL_EXPIRE_HOST}</value>
+                                </tag>
+                            </tags>
                             <trigger_prototypes>
+                                <trigger_prototype>
+                                    <uuid>681e8de3cd354d4082f713040658e436</uuid>
+                                    <expression>last(/SSL Expire Check/remaining_days_[{#SSL_EXPIRE_HOST}])&lt; 0</expression>
+                                    <name>Host {#SSL_EXPIRE_HOST} SSL key expired</name>
+                                    <priority>DISASTER</priority>
+                                </trigger_prototype>
                                 <trigger_prototype>
                                     <uuid>4b608d707bb04a2abe68a8b620bf209d</uuid>
                                     <expression>last(/SSL Expire Check/remaining_days_[{#SSL_EXPIRE_HOST}])&lt;=3</expression>
                                     <name>Host {#SSL_EXPIRE_HOST} SSL key expired in 3 days</name>
+                                    <priority>WARNING</priority>
                                 </trigger_prototype>
                             </trigger_prototypes>
                         </item_prototype>
@@ -89,8 +113,8 @@
             <macros>
                 <macro>
                     <macro>{$SSL_CHECK_HOST}</macro>
-                    <value>km.cocoplus.me</value>
-                    <description>要检测的域名, "," 分隔多个域名, 可自动发现分组</description>
+                    <value>&lt;Put your dns, without http or https&gt;</value>
+                    <description>要检测的域名, &quot;,&quot; 分隔多个域名, 可自动发现分组</description>
                 </macro>
             </macros>
         </template>
